@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<style>
+			body {
+				font-size: 40px;
+				background-color: #C8C9CB;
+				font-family: arial, sans-serif;
+				font-weight: bold;
+			}
+	        div {
+				color: #FFFFFF;
+				border-radius: 10px;
+			}
+			.logform {
+				padding: 10px;
+			}
+			.flex-container-head-foot {
+				display: flex;	
+			}
+			.head-foot {
+				flex-grow: 1;
+				margin: 10px;
+				background-color: #003366;
+				text-align: center;
+			}
+			.flex-container-body {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: wrap;	
+			}
+			
+			.sub {
+				flex-grow: 1;
+				margin: 10px;
+				background-color: #0071B9;
+				width: 500px;
+				padding: 20px;
+				
+			}
+	        select {
+				font-size: 40px;
+				border-radius: 10px;
+				height: 100px;
+				width: 100%
+			}
+			input {
+				font-size: 40px;
+				border-radius: 10px;
+				height: 100px;
+                width: 100%
+			}
+			textarea {
+				border-radius: 10px;
+				font-size: 20px;
+				width: 100%;
+				height: 400px;
+			}
+			
+			td {
+				padding: 10px;
+			}
+        </style>
+		<script>
+			function sendToEmail() {
+				
+				const dateTime = new Date();
+				
+				let subject = dateTime.getDate() + "." + dateTime.getMonth() + "." + dateTime.getFullYear() + " ";
+				
+				subject += dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds() + " ";
+				
+				subject += "Modbus session with Modreader v4";
+				const form = document.getElementById('log_form');
+				const email = form.querySelector("#email").value;
+				const area = document.getElementById('area');
+				const log = area.innerHTML;    
+				
+				window.open('mailto:' + form.querySelector("#email").value + '?subject=' + subject + '&body=' + log);
+			}
+			
+			function subForm() {
+				const area = document.getElementById('area');
+				const form = document.getElementById('form');
+				const id = form.querySelector('[name="id"]');
+				const command = form.querySelector('[name="command"]');
+				const reg = form.querySelector('[name="reg"]');
+				const val = form.querySelector('[name="val"]');
+				const conn = document.getElementById('conn');
+						
+				conn.innerHTML = "00";
+						
+				let requestBody = "id=" + id.value;
+				requestBody += "&command=" + command.value;
+				requestBody += "&reg=" + reg.value;
+				requestBody += "&val=" + val.value;
+				
+				var request = new XMLHttpRequest();
+				request.open('POST', "http://192.168.0.1/data");
+				request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
+				
+				request.onload = function() {
+					if (request.readyState == 4) {
+						conn.innerHTML = "ОТВЕТ";
+						var data = JSON.parse(request.responseText);
+						var msg = area.innerHTML;
+						let dateTime = new Date();
+						if (data[0] == 'ERROR!') {
+							msg += dateTime.getDate() + "." + dateTime.getMonth() + "." + dateTime.getFullYear() + " ";
+							msg += dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds() + " ";
+							msg += data[0] + "#\n";
+						} else {
+							for (i = 0; i < data.length; i++) {
+								msg += dateTime.getDate() + "." + dateTime.getMonth() + "." + dateTime.getFullYear() + " ";
+								msg += dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds() + " ";
+								var regNumber = Number(reg.value) + i;
+								msg += regNumber + ": " + data[i] + "#\n";
+							}
+						}
+						area.innerHTML = msg;
+						area.scrollTop = area.scrollHeight;
+					}
+				}
+				request.send(requestBody);
+				conn.innerHTML = "ОПРОС";
+			}
+		</script>
+	</head>
+	<body>
+		<div class="flex-container-head-foot">
+		    <div class="head-foot">
+				<h2><strong>ModReader v4</strong></h2>
+		    </div>
+	    </div>
+		<div class="flex-container-body">
+			<div class="sub">
+				<form action="http://192.168.0.1" method="post" enctype="application/x-www-form-urlencoded" id="form" onsubmit="return false;">
+					<table border="0">
+						<tr>
+							<td>
+								<label>Id:</label>
+								<input name="id" type="number" value="1">		
+							</td>
+							<td>
+								<div><label>Команда:</label></div>
+								<select name="command">
+									<option>01</option>
+									<option>02</option>
+									<option>03</option>
+									<option>04</option>
+									<option>05</option>
+									<option>06</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div><label>Регистр:</label></div>
+								<input name="reg" type="number" value="1001">
+							</td>
+							<td>
+								<div><label>Значение:</label></div>
+								<input name="val" type="number" value="5">
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<label id="conn">>>>>>>></label>
+							</td>
+							<td>
+								<input type="submit" value="Опросить" onclick="subForm()">
+							</td>
+						</tr>
+					</table>
+				</form>
+			</div>
+			<div class="sub" >
+				<form id="log_form" onsubmit="sendToEmail()">
+ 					<div class="logform"><textarea id="area" cols=37 rows=30></textarea></div>
+					<div class="logform"><input type="email" id="email" class="email" placeholder="Ввести email"></div>
+					<div class="logform"><input type="submit" value="Отправить на email"></div>
+				</form>
+			</div>
+		</div>
+		<div class="flex-container-head-foot">
+		    <div class="head-foot">
+			    <h3>Разработано #ChisLab</h3>
+		    </div>
+	    </div>
+	</body>
+</html>
