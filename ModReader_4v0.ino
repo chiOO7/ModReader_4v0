@@ -15,5 +15,10 @@ void setup() {
 }
 
 void loop() {
-  HTTP.handleClient();
+	if (WiFi.softAPgetStationNum() > 0) {
+		digitalWrite(LED_PIN_2, HIGH);
+	} else {
+		digitalWrite(LED_PIN_2, LOW);
+	}
+	HTTP.handleClient();
 }
