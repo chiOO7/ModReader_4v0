@@ -63,6 +63,8 @@
 			}
         </style>
 		<script>
+			let reqStr = "";
+		
 			function sendToEmail() {
 				
 				const dateTime = new Date();
@@ -80,6 +82,31 @@
 				window.open('mailto:' + form.querySelector("#email").value + '?subject=' + subject + '&body=' + log);
 			}
 			
+			function addZeroBefore(number) {
+				let string = "";
+				if (number < 10) {
+					return "0" + number.toString();
+				} else {
+					return number.toString();
+				}
+			}
+			
+			function addZeroBefore16(number) {
+				let string = "";
+				if (number == 0) return "00";
+				if (number < 16) return "0" + number.toString(16).toUpperCase();
+				return number.toString(16).toUpperCase();
+			}
+			
+			function getBytesFromReg(number) {
+				let val = Number(number);
+				let bytes = [0, 0];
+				bytes[0] = val >> 8;
+				bytes[1] = val - (bytes[0] << 8);
+				
+				return bytes;
+			}
+			
 			function subForm() {
 				const area = document.getElementById('area');
 				const form = document.getElementById('form');
@@ -89,7 +116,20 @@
 				const val = form.querySelector('[name="val"]');
 				const conn = document.getElementById('conn');
 						
-				conn.innerHTML = "00";
+				if (id.value > 255 || id.value < 0) {
+					alert("Id должно быть в диапазоне от 0 до 255");
+					return;
+				}
+				
+				if (reg.value > 65535 || reg.value < 0) {
+					alert("Номер регистра должен быть в диапазоне от 0 до 65535");
+					return;
+				}
+				
+				if (val.value > 65535 || val.value < 0) {
+					alert("Значение должно быть в диапазоне от 0 до 65535");
+					return;
+				}
 						
 				let requestBody = "id=" + id.value;
 				requestBody += "&command=" + command.value;
@@ -100,20 +140,23 @@
 				request.open('POST', "http://192.168.0.1/data");
 				request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
 				
+				let dateTime = new Date();
+				var msg = area.innerHTML;
+			
+				let dateTimeStr = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
+				
 				request.onload = function() {
 					if (request.readyState == 4) {
 						conn.innerHTML = "ОТВЕТ";
 						var data = JSON.parse(request.responseText);
-						var msg = area.innerHTML;
-						let dateTime = new Date();
+						dateTime = new Date();
+						dateTimeStr += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+						
 						if (data[0] == 'ERROR!') {
-							msg += dateTime.getDate() + "." + dateTime.getMonth() + "." + dateTime.getFullYear() + " ";
-							msg += dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds() + " ";
-							msg += data[0] + "#\n";
+							msg += dateTimeStr + "<<< " + "ОШИБКА#\n";
 						} else {
 							for (i = 0; i < data.length; i++) {
-								msg += dateTime.getDate() + "." + dateTime.getMonth() + "." + dateTime.getFullYear() + " ";
-								msg += dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds() + " ";
+								msg += dateTimeStr + "<<< ";
 								var regNumber = Number(reg.value) + i;
 								msg += regNumber + ": " + data[i] + "#\n";
 							}
@@ -123,6 +166,24 @@
 					}
 				}
 				request.send(requestBody);
+						dateTime = new Date();
+						dateTimeStr += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+						
+						let regval = Number(reg.value);
+						let regOld = regval >> 8;
+						let regJun = regval - (regOld << 8);
+						
+						let reqStr = ">>> " + addZeroBefore16(Number(id.value)) + " " + 
+							addZeroBefore16(Number(command.value)) + " " + 
+							addZeroBefore16(getBytesFromReg(Number(reg.value))[0]) + " " + 
+							addZeroBefore16(getBytesFromReg(Number(reg.value))[1]) + " " +
+							addZeroBefore16(getBytesFromReg(Number(val.value))[0]) + " " + 
+							addZeroBefore16(getBytesFromReg(Number(val.value))[1]) + "\n";
+							
+						msg += dateTimeStr + reqStr;
+						area.innerHTML = msg;
+						area.scrollTop = area.scrollHeight;
+				
 				conn.innerHTML = "ОПРОС";
 			}
 		</script>
@@ -140,7 +201,7 @@
 						<tr>
 							<td>
 								<label>Id:</label>
-								<input name="id" type="number" value="1">		
+								<input name="id" type="number" value="1" min="0">		
 							</td>
 							<td>
 								<div><label>Команда:</label></div>
@@ -157,11 +218,11 @@
 						<tr>
 							<td>
 								<div><label>Регистр:</label></div>
-								<input name="reg" type="number" value="1001">
+								<input name="reg" type="number" value="1001" min="0">
 							</td>
 							<td>
 								<div><label>Значение:</label></div>
-								<input name="val" type="number" value="5">
+								<input name="val" type="number" value="5" min="0">
 							</td>
 						</tr>
 						<tr>
@@ -169,7 +230,7 @@
 								<label id="conn">>>>>>>></label>
 							</td>
 							<td>
-								<input type="submit" value="Опросить" onclick="subForm()">
+								<input type="submit" value="Опросить" onclick="subForm()" style="height: 200px">
 							</td>
 						</tr>
 					</table>
