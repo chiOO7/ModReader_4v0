@@ -17,6 +17,12 @@ void processingPostReqestData() {
 }
 
 String processingModbusResponse() {
+	int timesCount = 0;
+	while (Serial.available() <= 0) {
+		delay(WAIT_SERIAL_DELAY);
+		timesCount++;
+    if (timesCount > WAIT_COUNT_DELAY) return "[\"ERROR!\", \"SERIAL_TIMEOUT\"]";
+	}
   	if (Serial.available() > 0) {
         int bytesCount = modbusGetRxBuffer();
 	  	if (bytesCount == (val * 2 + 5)) {
@@ -29,10 +35,10 @@ String processingModbusResponse() {
 		    printToWeb = printToWeb.substring(0, printToWeb.length() - 1);
 		    printToWeb += "]";
 		    } else {
-			      printToWeb = "[\"ERROR!\"]";
+			    printToWeb = "[\"ERROR!\", \"BAD_RX\"]";
 		    }
 	} else {
-		    printToWeb = "";
+		printToWeb = "";
 	}
   
     return printToWeb;
@@ -58,7 +64,7 @@ String processingModbusRequest() {
 		lowByte(modbusCalcCRC(6, bytesToPort))
 	};
 	modbusSendTxBuffer(telegramm, 8);
-    delay(500);
+    delay(RESPONSE_DELAY);
 	  
     return processingModbusResponse();
 }

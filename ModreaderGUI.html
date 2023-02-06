@@ -53,7 +53,7 @@
 			}
 			textarea {
 				border-radius: 10px;
-				font-size: 20px;
+				font-size: 12px;
 				width: 100%;
 				height: 400px;
 			}
@@ -69,11 +69,11 @@
 				
 				const dateTime = new Date();
 				
-				let subject = dateTime.getDate() + "." + dateTime.getMonth() + "." + dateTime.getFullYear() + " ";
+				let subject = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
 				
-				subject += dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds() + " ";
+				subject += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
 				
-				subject += "Modbus session with Modreader v4";
+				subject += "Modbus session by Modreader v4";
 				const form = document.getElementById('log_form');
 				const email = form.querySelector("#email").value;
 				const area = document.getElementById('area');
@@ -142,43 +142,50 @@
 				
 				let dateTime = new Date();
 				var msg = area.innerHTML;
-			
-				let dateTimeStr = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
+				
+				let dateTimeStr;
+				let dateStr = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
+				let timeStr;
 				
 				request.onload = function() {
 					if (request.readyState == 4) {
 						conn.innerHTML = "ОТВЕТ";
 						var data = JSON.parse(request.responseText);
 						dateTime = new Date();
-						dateTimeStr += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+						timeStr = addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+						dateTimeStr = dateStr + timeStr;
 						
 						if (data[0] == 'ERROR!') {
-							msg += dateTimeStr + "<<< " + "ОШИБКА#\n";
+							if (data[1] == 'SERIAL_TIMEOUT') msg += dateTimeStr + "ОТВЕТ: Таймаут порта#\r\n";
+							if (data[1] == 'BAD_RX') msg += dateTimeStr + "ОТВЕТ: Ошибка ответа#\r\n";
 						} else {
 							for (i = 0; i < data.length; i++) {
-								msg += dateTimeStr + "<<< ";
+								msg += dateTimeStr + "ОТВЕТ: ";
 								var regNumber = Number(reg.value) + i;
-								msg += regNumber + ": " + data[i] + "#\n";
+								msg += regNumber + ": " + data[i] + "#\r\n";
 							}
 						}
+						
 						area.innerHTML = msg;
 						area.scrollTop = area.scrollHeight;
 					}
 				}
 				request.send(requestBody);
 						dateTime = new Date();
-						dateTimeStr += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+						timeStr = addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+						
+						dateTimeStr = dateStr + timeStr;
 						
 						let regval = Number(reg.value);
 						let regOld = regval >> 8;
 						let regJun = regval - (regOld << 8);
 						
-						let reqStr = ">>> " + addZeroBefore16(Number(id.value)) + " " + 
+						let reqStr = "ОПРОС: " + addZeroBefore16(Number(id.value)) + " " + 
 							addZeroBefore16(Number(command.value)) + " " + 
 							addZeroBefore16(getBytesFromReg(Number(reg.value))[0]) + " " + 
 							addZeroBefore16(getBytesFromReg(Number(reg.value))[1]) + " " +
 							addZeroBefore16(getBytesFromReg(Number(val.value))[0]) + " " + 
-							addZeroBefore16(getBytesFromReg(Number(val.value))[1]) + "\n";
+							addZeroBefore16(getBytesFromReg(Number(val.value))[1]) + "#\r\n";
 							
 						msg += dateTimeStr + reqStr;
 						area.innerHTML = msg;

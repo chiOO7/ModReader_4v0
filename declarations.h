@@ -8,6 +8,10 @@ const int LED_PIN_3 = 12;     //D6
 const int LED_PIN_4 = 14;     //D5
 const int LED_PIN_5 = 16;     //D0
 
+const int RESPONSE_DELAY = 200;
+const int WAIT_SERIAL_DELAY = 10;
+const int WAIT_COUNT_DELAY = 10;
+
 const char ESPControllerWifiAP_SSID[40] = "Modreader 4v0";
 const char ESPControllerWifiAP_password[40] = "12345678";
 
