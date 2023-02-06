@@ -55,7 +55,7 @@
 				border-radius: 10px;
 				font-size: 12px;
 				width: 100%;
-				height: 400px;
+				height: 370px;
 			}
 			
 			td {
@@ -69,15 +69,20 @@
 				
 				const dateTime = new Date();
 				
-				let subject = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
+				let subject = "Данные для формирования протокола дигностики от ";
+				
+				subject += addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
 				
 				subject += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
 				
-				subject += "Modbus session by Modreader v4";
 				const form = document.getElementById('log_form');
 				const email = form.querySelector("#email").value;
 				const area = document.getElementById('area');
-				const log = area.innerHTML;    
+				const log = form.querySelector("#object_name").value + "#" + 
+					form.querySelector("#device_name").value + "#" + 
+					form.querySelector("#job_name").value + "#" + 
+					form.querySelector("#employee_name").value + "#" + 
+					area.innerHTML;    
 				
 				window.open('mailto:' + form.querySelector("#email").value + '?subject=' + subject + '&body=' + log);
 			}
@@ -242,12 +247,17 @@
 						</tr>
 					</table>
 				</form>
+				<div class="logform"><textarea id="area" cols=37 rows=28></textarea></div>
 			</div>
 			<div class="sub" >
 				<form id="log_form" onsubmit="sendToEmail()">
- 					<div class="logform"><textarea id="area" cols=37 rows=30></textarea></div>
+					<div class="logform"><label>Данные для формирования протокола диагностики:</label></div>
+					<div class="logform"><input type="text" id="object_name" class="email" placeholder="Название объекта"></div>
+					<div class="logform"><input type="text" id="device_name" class="email" placeholder="Название оборудования"></div>
+					<div class="logform"><input type="text" id="job_name" class="email" placeholder="Должность"></div>
+					<div class="logform"><input type="text" id="employee_name" class="email" placeholder="Ф.И.О."></div>
 					<div class="logform"><input type="email" id="email" class="email" placeholder="Ввести email"></div>
-					<div class="logform"><input type="submit" value="Отправить на email"></div>
+					<div class="logform"><input type="submit" value="Отправить на email" style="height: 200px"></div>
 				</form>
 			</div>
 		</div>
