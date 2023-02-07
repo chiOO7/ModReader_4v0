@@ -2,10 +2,10 @@
 #include <ESP8266WebServer.h> 
 
 const int RS485_PIN = 2;      //D4
-const int LED_PIN_1 = 15;     //D8
-const int LED_PIN_2 = 13;     //D7
-const int LED_PIN_3 = 12;     //D6
-const int LED_PIN_4 = 14;     //D5
+const int LED_POWER_PIN = 15;     //D8
+const int LED_WIFI_CONNECT_PIN = 13;     //D7
+const int LED_TX_PIN = 12;     //D6
+const int LED_RX_PIN = 14;     //D5
 const int LED_PIN_5 = 16;     //D0
 
 const int RESPONSE_DELAY = 200;

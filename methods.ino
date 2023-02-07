@@ -80,7 +80,7 @@ void serverInit() {
 }
 
 int modbusGetRxBuffer() {
-	digitalWrite(LED_PIN_4, HIGH);
+	digitalWrite(LED_RX_PIN, HIGH);
 	for (int i = 0; i < 8; i++) {
 		rxBuffer[i] = 0;
 	}
@@ -98,7 +98,7 @@ int modbusGetRxBuffer() {
 	if (bufferOverflow) {
 		return -3;
 	}
-	digitalWrite(LED_PIN_4, LOW);
+	digitalWrite(LED_RX_PIN, LOW);
 	return readBytesCount;
 }
 
@@ -108,7 +108,7 @@ void ApReconnect() {
 }
 
 void modbusSendTxBuffer(byte buff[], int len) {
-    digitalWrite(LED_PIN_3, HIGH);
+    digitalWrite(LED_TX_PIN, HIGH);
     int crc = modbusCalcCRC(len, buff);
     buff[len] = crc;
     digitalWrite(RS485_PIN, HIGH);
@@ -117,7 +117,7 @@ void modbusSendTxBuffer(byte buff[], int len) {
     delay(10);
     digitalWrite(RS485_PIN, LOW);
     Serial.flush();
-    digitalWrite(LED_PIN_3, LOW);
+    digitalWrite(LED_TX_PIN, LOW);
 }
 
 int modbusCalcCRC(byte length, byte bufferArray[]) {

@@ -167,7 +167,8 @@
 							for (i = 0; i < data.length; i++) {
 								msg += dateTimeStr + "ОТВЕТ: ";
 								var regNumber = Number(reg.value) + i;
-								msg += regNumber + ": " + data[i] + "#\r\n";
+								msg += regNumber + "(" + addZeroBefore16(getBytesFromReg(regNumber)[0]) +  addZeroBefore16(getBytesFromReg(regNumber)[1]) + "): " + 
+									data[i]  + "(" + addZeroBefore16(getBytesFromReg(data[i])[0]) +  addZeroBefore16(getBytesFromReg(data[i])[1]) + ")"+ "#\r\n";
 							}
 						}
 						
@@ -187,9 +188,9 @@
 						
 						let reqStr = "ОПРОС: " + addZeroBefore16(Number(id.value)) + " " + 
 							addZeroBefore16(Number(command.value)) + " " + 
-							addZeroBefore16(getBytesFromReg(Number(reg.value))[0]) + " " + 
+							addZeroBefore16(getBytesFromReg(Number(reg.value))[0]) +  
 							addZeroBefore16(getBytesFromReg(Number(reg.value))[1]) + " " +
-							addZeroBefore16(getBytesFromReg(Number(val.value))[0]) + " " + 
+							addZeroBefore16(getBytesFromReg(Number(val.value))[0]) + 
 							addZeroBefore16(getBytesFromReg(Number(val.value))[1]) + "#\r\n";
 							
 						msg += dateTimeStr + reqStr;
