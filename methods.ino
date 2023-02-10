@@ -16,27 +16,98 @@ void processingPostReqestData() {
     }
 }
 
+bool responseIsNotValid(int bytesCount) {
+    uint16_t u16MsgCRC = ((rxBuffer[bytesCount - 2] << 8) | rxBuffer[bytesCount - 1]);
+    if (modbusCalcCRC(bytesCount - 2, rxBuffer) != u16MsgCRC) {
+        return false;
+    }
+    return true;
+}
+
+String process03And04functions(int bytesCount) {
+	String str = "";
+	if (bytesCount == (val * 2 + 5)) {
+		str = "[";
+		for (int b = 3; b < bytesCount - 2; b += 2) {
+			str += ((rxBuffer[b] << 8) + rxBuffer[b + 1]);
+			str += ",";
+		}
+		str = str.substring(0, str.length() - 1);
+		str += "]";
+	} else {
+		return BAD_RX;
+	}
+	
+	return str;
+}
+
+String process05And06functions() {
+	//String str = "[";
+	
+	//for (int b = 0; b < bytesCount; b++) {
+		//str += rxBuffer[b];
+		//str += ",";
+	//}
+	
+	if (rxBuffer[1] == command &&
+		rxBuffer[2] == reg &&
+		rxBuffer[3] == val) {
+		return SET_OK;	
+	}	else {
+		return BAD_RX;
+	}
+	
+	//str = str.substring(0, str.length() - 1);
+	//str += "]";
+	
+	//return str;
+}
+
+String process01And02functions() {
+	String str = "[";
+	str += "]";
+	
+	return str;
+}
+
+
 String processingModbusResponse() {
 	int timesCount = 0;
 	while (Serial.available() <= 0) {
 		delay(WAIT_SERIAL_DELAY);
 		timesCount++;
-    if (timesCount > WAIT_COUNT_DELAY) return "[\"ERROR!\", \"SERIAL_TIMEOUT\"]";
+		if (timesCount > WAIT_COUNT_DELAY) return "[\"ERROR!\", \"SERIAL_TIMEOUT\"]";
 	}
+	
   	if (Serial.available() > 0) {
         int bytesCount = modbusGetRxBuffer();
-	  	if (bytesCount == (val * 2 + 5)) {
-            printToWeb = "";
-            printToWeb += "[";
-		    for (int b = 3; b < bytesCount - 2; b += 2) {
-		        printToWeb += ((rxBuffer[b] << 8) + rxBuffer[b + 1]);
-		        printToWeb += ",";
-		    }
-		    printToWeb = printToWeb.substring(0, printToWeb.length() - 1);
-		    printToWeb += "]";
-		    } else {
-			    printToWeb = "[\"ERROR!\", \"BAD_RX\"]";
-		    }
+		
+		if (responseIsNotValid) return BAD_RX;
+		
+		if (rxBuffer[0] != id) return BAD_RX;
+		
+		switch (rxBuffer[0]) {
+			
+			case 1 :
+				printToWeb = process01And02functions();
+			break;
+			case 2 :
+				printToWeb = process01And02functions();
+			break;
+			case 3 :
+				printToWeb = process03And04functions(bytesCount);
+			break;
+			case 4 :
+				printToWeb = process03And04functions(bytesCount);
+			break;
+			case 5 :
+				printToWeb = process05And06functions();
+			break;
+			case 6 :
+				printToWeb = process05And06functions();
+			break;
+			
+		}
 	} else {
 		printToWeb = "";
 	}

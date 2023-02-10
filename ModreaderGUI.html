@@ -167,8 +167,8 @@
 							for (i = 0; i < data.length; i++) {
 								msg += dateTimeStr + "ОТВЕТ: ";
 								var regNumber = Number(reg.value) + i;
-								msg += regNumber + "(" + addZeroBefore16(getBytesFromReg(regNumber)[0]) +  addZeroBefore16(getBytesFromReg(regNumber)[1]) + "): " + 
-									data[i]  + "(" + addZeroBefore16(getBytesFromReg(data[i])[0]) +  addZeroBefore16(getBytesFromReg(data[i])[1]) + ")"+ "#\r\n";
+								msg += addZeroBefore16(getBytesFromReg(regNumber)[0]) + addZeroBefore16(getBytesFromReg(regNumber)[1]) + "(" + regNumber + "): " +
+									addZeroBefore16(getBytesFromReg(data[i])[0]) + addZeroBefore16(getBytesFromReg(data[i])[1]) + "("+ data[i] + ")#\r\n";
 							}
 						}
 						
