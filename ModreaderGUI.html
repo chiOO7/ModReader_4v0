@@ -112,8 +112,16 @@
 				return bytes;
 			}
 			
-			function subForm() {
+			async function printToLog(inStr) {
+				let str = await inStr;
 				const area = document.getElementById('area');
+				let msg = area.innerHTML;
+				area.innerHTML = msg + getDateTimeStr() + str + "#\r\n";
+				area.scrollTop = area.scrollHeight;
+			}
+			
+			function subForm() {
+				//const area = document.getElementById('area');
 				const form = document.getElementById('form');
 				const id = form.querySelector('[name="id"]');
 				const command = form.querySelector('[name="command"]');
@@ -136,68 +144,102 @@
 					return;
 				}
 						
-				let requestBody = "id=" + id.value;
-				requestBody += "&command=" + command.value;
-				requestBody += "&reg=" + reg.value;
-				requestBody += "&val=" + val.value;
-				
-				var request = new XMLHttpRequest();
-				request.open('POST', "http://192.168.0.1/data");
-				request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
-				
-				let dateTime = new Date();
-				var msg = area.innerHTML;
-				
-				let dateTimeStr;
-				let dateStr = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
-				let timeStr;
-				
-				request.onload = function() {
-					if (request.readyState == 4) {
-						conn.innerHTML = "ОТВЕТ";
-						var data = JSON.parse(request.responseText);
-						dateTime = new Date();
-						timeStr = addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
-						dateTimeStr = dateStr + timeStr;
-						
-						if (data[0] == 'ERROR!') {
-							if (data[1] == 'SERIAL_TIMEOUT') msg += dateTimeStr + "ОТВЕТ: Таймаут порта#\r\n";
-							if (data[1] == 'BAD_RX') msg += dateTimeStr + "ОТВЕТ: Ошибка ответа#\r\n";
-						} else {
-							for (i = 0; i < data.length; i++) {
-								msg += dateTimeStr + "ОТВЕТ: ";
-								var regNumber = Number(reg.value) + i;
-								msg += addZeroBefore16(getBytesFromReg(regNumber)[0]) + addZeroBefore16(getBytesFromReg(regNumber)[1]) + "(" + regNumber + "): " +
-									addZeroBefore16(getBytesFromReg(data[i])[0]) + addZeroBefore16(getBytesFromReg(data[i])[1]) + "("+ data[i] + ")#\r\n";
-							}
-						}
-						
-						area.innerHTML = msg;
-						area.scrollTop = area.scrollHeight;
-					}
-				}
-				request.send(requestBody);
-						dateTime = new Date();
-						timeStr = addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
-						
-						dateTimeStr = dateStr + timeStr;
-						
-						let regval = Number(reg.value);
-						let regOld = regval >> 8;
-						let regJun = regval - (regOld << 8);
-						
-						let reqStr = "ОПРОС: " + addZeroBefore16(Number(id.value)) + " " + 
-							addZeroBefore16(Number(command.value)) + " " + 
-							addZeroBefore16(getBytesFromReg(Number(reg.value))[0]) +  
-							addZeroBefore16(getBytesFromReg(Number(reg.value))[1]) + " " +
-							addZeroBefore16(getBytesFromReg(Number(val.value))[0]) + 
-							addZeroBefore16(getBytesFromReg(Number(val.value))[1]) + "#\r\n";
-							
-						msg += dateTimeStr + reqStr;
-						area.innerHTML = msg;
-						area.scrollTop = area.scrollHeight;
+				getData(id.value, command.value, reg.value, val.value);		
 				
 				conn.innerHTML = "ОПРОС";
+			}
+			
+			async function getData(id, command, reg, val) {
+				const conn = document.getElementById('conn');
+				
+				let requestBody = "id=" + id;
+				requestBody += "&command=" + command;
+				requestBody += "&reg=" + reg;
+				requestBody += "&val=" + val;
+				
+				let reqStr = "ОПРОС: " + addZeroBefore16(Number(id)) + " " + 
+					addZeroBefore16(Number(command)) + " " + 
+					addZeroBefore16(getBytesFromReg(Number(reg))[0]) +  
+					addZeroBefore16(getBytesFromReg(Number(reg))[1]) + " " +
+					addZeroBefore16(getBytesFromReg(Number(val))[0]) + 
+					addZeroBefore16(getBytesFromReg(Number(val))[1]) + " " + 
+					addZeroBefore16(getBytesFromReg(Number(calcCRC(id, command, reg, val)))[0]) +
+					addZeroBefore16(getBytesFromReg(Number(calcCRC(id, command, reg, val)))[1]);
+					
+				printToLog(reqStr);
+			
+				let response = await fetch("http://192.168.0.1/data", {
+					method: 'POST', 
+					headers: {
+						'Content-type': 'application/x-www-form-urlencoded; charset=utf-8'
+					},
+					body: requestBody
+				});
+				
+				let data = await response.json();
+				
+				conn.innerHTML = "ОТВЕТ";
+						
+				if (data[0] == 'ERROR!') {
+					if (data[1] == 'SERIAL_TIMEOUT') printToLog("ОТВЕТ: Таймаут порта");
+					if (data[1] == 'BAD_RX') printToLog("ОТВЕТ: Ошибка ответа");
+					return;
+				} 
+				
+				if (data[0] == 'SET_OK') {
+					printToLog("ОТВЕТ: УПЕШНО");
+					return;
+				}
+				
+				else {
+					for (i = 0; i < data.length; i++) {
+						var regNumber = Number(reg) + i;
+						printToLog(
+							"ОТВЕТ: " + 
+							addZeroBefore16(getBytesFromReg(regNumber)[0]) +  
+							addZeroBefore16(getBytesFromReg(regNumber)[1]) + "(" + 
+							regNumber + "): " +  
+							addZeroBefore16(getBytesFromReg(data[i])[0]) +  
+							addZeroBefore16(getBytesFromReg(data[i])[1]) + "(" +
+							data[i]  + ")"				
+						);
+					}
+				}
+				
+			}
+			
+			function getDateTimeStr() {
+				let dateTime = new Date();
+				let dateStr = addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
+				let timeStr = addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
+				return dateTimeStr = dateStr + timeStr;
+			}
+			
+			function calcCRC(id, command, reg, val) {
+				let temp, temp2, flag;
+				temp = 0xFFFF;
+				let bufferArray = [
+					id, 
+					command, 
+					getBytesFromReg(Number(reg))[0], 
+					getBytesFromReg(Number(reg))[1], 
+					getBytesFromReg(Number(val))[0],
+					getBytesFromReg(Number(val))[1]
+				];
+					
+				for (i = 0; i < 6; i++) {
+					temp = temp ^ bufferArray[i];
+					for (j = 1; j <= 8; j++) {
+						flag = temp & 0x0001;
+						temp >>= 1;
+						if (flag) temp ^= 0xA001;
+					}
+				}
+				temp2 = temp >> 8;
+				temp = (temp << 8) | temp2;
+				temp &= 0xFFFF;
+    
+				return temp;
 			}
 		</script>
 	</head>

@@ -17,23 +17,23 @@ void processingPostReqestData() {
 }
 
 bool responseIsNotValid(int bytesCount) {
-    uint16_t u16MsgCRC = ((rxBuffer[bytesCount - 2] << 8) | rxBuffer[bytesCount - 1]);
-    if (modbusCalcCRC(bytesCount - 2, rxBuffer) != u16MsgCRC) {
+    unsigned int u16MsgCRC = ((rxBuffer[bytesCount - 2] << 8) | rxBuffer[bytesCount - 1]);
+    unsigned int calcedCRC = modbusCalcCRC(bytesCount - 2, rxBuffer);
+    if (calcedCRC == u16MsgCRC) {
         return false;
     }
     return true;
 }
 
+
 String process03And04functions(int bytesCount) {
 	String str = "";
 	if (bytesCount == (val * 2 + 5)) {
-		str = "[";
 		for (int b = 3; b < bytesCount - 2; b += 2) {
 			str += ((rxBuffer[b] << 8) + rxBuffer[b + 1]);
 			str += ",";
 		}
 		str = str.substring(0, str.length() - 1);
-		str += "]";
 	} else {
 		return BAD_RX;
 	}
@@ -42,25 +42,13 @@ String process03And04functions(int bytesCount) {
 }
 
 String process05And06functions() {
-	//String str = "[";
-	
-	//for (int b = 0; b < bytesCount; b++) {
-		//str += rxBuffer[b];
-		//str += ",";
-	//}
-	
-	if (rxBuffer[1] == command &&
-		rxBuffer[2] == reg &&
-		rxBuffer[3] == val) {
+	if (word(0, rxBuffer[1]) == command &&
+		word(rxBuffer[2], rxBuffer[3]) == reg &&
+		word(rxBuffer[4], rxBuffer[5]) == val) {
 		return SET_OK;	
 	}	else {
 		return BAD_RX;
 	}
-	
-	//str = str.substring(0, str.length() - 1);
-	//str += "]";
-	
-	//return str;
 }
 
 String process01And02functions() {
@@ -70,48 +58,51 @@ String process01And02functions() {
 	return str;
 }
 
-
 String processingModbusResponse() {
+  String printToWeb = "[";
 	int timesCount = 0;
 	while (Serial.available() <= 0) {
 		delay(WAIT_SERIAL_DELAY);
 		timesCount++;
-		if (timesCount > WAIT_COUNT_DELAY) return "[\"ERROR!\", \"SERIAL_TIMEOUT\"]";
+		if (timesCount > WAIT_COUNT_DELAY) {
+		  return "[\"ERROR!\", \"SERIAL_TIMEOUT\"]";
+		}
 	}
 	
   	if (Serial.available() > 0) {
         int bytesCount = modbusGetRxBuffer();
 		
-		if (responseIsNotValid) return BAD_RX;
+		    if (responseIsNotValid(bytesCount)) return "[" + BAD_RX + "]";
+    
+		    if (word(0, rxBuffer[0]) != id) return "[" + BAD_RX + "]";
 		
-		if (rxBuffer[0] != id) return BAD_RX;
-		
-		switch (rxBuffer[0]) {
+		    switch (rxBuffer[1]) {
 			
-			case 1 :
-				printToWeb = process01And02functions();
-			break;
-			case 2 :
-				printToWeb = process01And02functions();
-			break;
-			case 3 :
-				printToWeb = process03And04functions(bytesCount);
-			break;
-			case 4 :
-				printToWeb = process03And04functions(bytesCount);
-			break;
-			case 5 :
-				printToWeb = process05And06functions();
-			break;
-			case 6 :
-				printToWeb = process05And06functions();
-			break;
-			
-		}
-	} else {
-		printToWeb = "";
-	}
-  
+			    case 1 :
+            printToWeb += "1, 123";
+				    //printToWeb = process01And02functions();
+			    break;
+			    case 2 :
+            printToWeb += "2, 234";
+//				    printToWeb = process01And02functions();
+			    break;
+			    case 3 :
+				    printToWeb += process03And04functions(bytesCount);
+			    break;
+			    case 4 :
+				    printToWeb += process03And04functions(bytesCount);
+			    break;
+			    case 5 :
+				    printToWeb = process05And06functions();
+			    break;
+			    case 6 :
+				    printToWeb += process05And06functions();
+			    break;
+			  }
+	    } 
+
+    printToWeb += "]";
+    
     return printToWeb;
 }
 
@@ -181,7 +172,8 @@ void ApReconnect() {
 void modbusSendTxBuffer(byte buff[], int len) {
     digitalWrite(LED_TX_PIN, HIGH);
     int crc = modbusCalcCRC(len, buff);
-    buff[len] = crc;
+    buff[len] = highByte(crc);
+    buff[len + 1] = lowByte(crc);
     digitalWrite(RS485_PIN, HIGH);
     delay(5);
     Serial.write(buff, len);
@@ -191,7 +183,7 @@ void modbusSendTxBuffer(byte buff[], int len) {
     digitalWrite(LED_TX_PIN, LOW);
 }
 
-int modbusCalcCRC(byte length, byte bufferArray[]) {
+unsigned int modbusCalcCRC(byte length, byte bufferArray[]) {
     unsigned int temp, temp2, flag;
     temp = 0xFFFF;
     for (unsigned char i = 0; i < length; i++) {
