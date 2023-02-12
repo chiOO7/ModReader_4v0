@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Modreader 4v0</title>
 		<style>
 			body {
 				font-size: 40px;
@@ -15,6 +17,10 @@
 			}
 			.logform {
 				padding: 10px;
+			}
+			.butt {
+				padding: 10px;
+				height: 200px;
 			}
 			.flex-container-head-foot {
 				display: flex;	
@@ -250,12 +256,12 @@
 					<table border="0">
 						<tr>
 							<td>
-								<label>Id:</label>
-								<input name="id" type="number" value="1" min="0">		
+								<label for="id">Id:</label>
+								<input name="id" id="id" type="number" value="1" min="0">		
 							</td>
 							<td>
-								<div><label>Команда:</label></div>
-								<select name="command">
+								<div><label for="command">Команда:</label></div>
+								<select name="command" id="command">
 									<option>01</option>
 									<option>02</option>
 									<option>03</option>
@@ -267,12 +273,12 @@
 						</tr>
 						<tr>
 							<td>
-								<div><label>Регистр:</label></div>
-								<input name="reg" type="number" value="1001" min="0">
+								<div><label for="reg">Регистр:</label></div>
+								<input name="reg" id="reg" type="number" value="1001" min="0">
 							</td>
 							<td>
-								<div><label>Значение:</label></div>
-								<input name="val" type="number" value="5" min="0">
+								<div><label for="val">Значение:</label></div>
+								<input name="val" id="val" type="number" value="5" min="0">
 							</td>
 						</tr>
 						<tr>
@@ -280,12 +286,12 @@
 								<label id="conn">>>>>>>></label>
 							</td>
 							<td>
-								<input type="submit" value="Опросить" onclick="subForm()" style="height: 200px">
+								<input class="butt" type="submit" value="Опросить" onclick="subForm()">
 							</td>
 						</tr>
 					</table>
 				</form>
-				<div class="logform"><textarea id="area" cols=37 rows=28></textarea></div>
+				<div class="logform"><textarea id="area" cols=37 rows=28 placeholder="Журнал"></textarea></div>
 			</div>
 			<div class="sub" >
 				<form id="log_form" onsubmit="sendToEmail()">
@@ -295,7 +301,7 @@
 					<div class="logform"><input type="text" id="job_name" class="email" placeholder="Должность"></div>
 					<div class="logform"><input type="text" id="employee_name" class="email" placeholder="Ф.И.О."></div>
 					<div class="logform"><input type="email" id="email" class="email" placeholder="Ввести email"></div>
-					<div class="logform"><input type="submit" value="Отправить на email" style="height: 200px"></div>
+					<div class="butt"><input type="submit" value="Отправить на email"></div>
 				</form>
 			</div>
 		</div>
