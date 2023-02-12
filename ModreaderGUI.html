@@ -63,18 +63,13 @@
 			}
         </style>
 		<script>
-			let reqStr = "";
+			//let reqStr = "";
 		
 			function sendToEmail() {
-				
 				const dateTime = new Date();
-				
 				let subject = "Данные для формирования протокола дигностики от ";
-				
 				subject += addZeroBefore(dateTime.getDate()) + "." + addZeroBefore(dateTime.getMonth() + 1) + "." + dateTime.getFullYear() + " ";
-				
 				subject += addZeroBefore(dateTime.getHours()) + ":" + addZeroBefore(dateTime.getMinutes()) + ":" + addZeroBefore(dateTime.getSeconds()) + " ";
-				
 				const form = document.getElementById('log_form');
 				const email = form.querySelector("#email").value;
 				const area = document.getElementById('area');
@@ -183,15 +178,16 @@
 				if (data[0] == 'ERROR!') {
 					if (data[1] == 'SERIAL_TIMEOUT') printToLog("ОТВЕТ: Таймаут порта");
 					if (data[1] == 'BAD_RX') printToLog("ОТВЕТ: Ошибка ответа");
+					if (data[1] == 'BUFFER_OVERFLOW') printToLog("ОТВЕТ: Переполнение буффера");
+					
 					return;
 				} 
 				
 				if (data[0] == 'SET_OK') {
 					printToLog("ОТВЕТ: УПЕШНО");
+					
 					return;
-				}
-				
-				else {
+				}	else {
 					for (i = 0; i < data.length; i++) {
 						var regNumber = Number(reg) + i;
 						printToLog(
@@ -205,7 +201,6 @@
 						);
 					}
 				}
-				
 			}
 			
 			function getDateTimeStr() {
