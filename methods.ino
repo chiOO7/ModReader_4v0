@@ -25,6 +25,29 @@ bool responseIsNotValid(int bytesCount) {
     return true;
 }
 
+String process01And02functions(int bytesCount) {
+	String str = "";
+	
+	int regsCount = (val % 8) > 0 ? (val / 8) + 1 : (val / 8);
+	
+	int bitCount = 0;
+	
+	if (bytesCount == (regsCount + 5)) {
+		for (int b = 3; b < bytesCount - 2; b++) {
+			for (int bit = 0; bit < 8; bit++) {
+				str += bitRead(rxBuffer[b], bit);
+				str += ",";
+				bitCount++;
+				if (bitCount == val) break;
+			}
+		}
+		str = str.substring(0, str.length() - 1);
+	} else {
+		return BAD_RX;
+	}
+	
+	return str;
+}
 
 String process03And04functions(int bytesCount) {
 	String str = "";
@@ -51,66 +74,64 @@ String process05And06functions() {
 	}
 }
 
-String process01And02functions() {
-	String str = "[";
-	str += "]";
-	
-	return str;
-}
+//String printToWeb(String str) {
+//	return "[" + str + "]";
+//}
 
 String processingModbusResponse() {
-  String printToWeb = "[";
+	String printToWeb = "[";
 	int timesCount = 0;
 	while (Serial.available() <= 0) {
 		delay(WAIT_SERIAL_DELAY);
 		timesCount++;
 		if (timesCount > WAIT_COUNT_DELAY) {
-		  return "[\"ERROR!\", \"SERIAL_TIMEOUT\"]";
+			return "[" + SERIAL_TIMEOUT + "]";
 		}
 	}
 	
   	if (Serial.available() > 0) {
         int bytesCount = modbusGetRxBuffer();
 		
-		    if (responseIsNotValid(bytesCount)) return "[" + BAD_RX + "]";
-    
-		    if (word(0, rxBuffer[0]) != id) return "[" + BAD_RX + "]";
+		if (bytesCount == -3) return "[" + BUFFER_OVERFLOW + "]";
 		
-		    switch (rxBuffer[1]) {
-			
-			    case 1 :
-            printToWeb += "1, 123";
-				    //printToWeb = process01And02functions();
-			    break;
-			    case 2 :
-            printToWeb += "2, 234";
-//				    printToWeb = process01And02functions();
-			    break;
-			    case 3 :
-				    printToWeb += process03And04functions(bytesCount);
-			    break;
-			    case 4 :
-				    printToWeb += process03And04functions(bytesCount);
-			    break;
-			    case 5 :
-				    printToWeb = process05And06functions();
-			    break;
-			    case 6 :
-				    printToWeb += process05And06functions();
-			    break;
-			  }
-	    } 
-
-    printToWeb += "]";
+		if (responseIsNotValid(bytesCount)) return "[" + BAD_RX + "]";
     
-    return printToWeb;
+		if (word(0, rxBuffer[0]) != id) return "[" + BAD_RX + "]";
+			
+		if (word(0, rxBuffer[1]) != command) return "[" + BAD_RX + "]";
+		
+		switch (rxBuffer[1]) {
+		    case 1 :
+				  //printToWeb += "1, 123";
+			    printToWeb = process01And02functions(bytesCount);
+		    break;
+		    case 2 :
+				  //printToWeb += "2, 234";
+          printToWeb = process01And02functions(bytesCount);
+		    break;
+		    case 3 :
+			    printToWeb += process03And04functions(bytesCount);
+		    break;
+		    case 4 :
+			    printToWeb += process03And04functions(bytesCount);
+		    break;
+		    case 5 :
+			    printToWeb = process05And06functions();
+		    break;
+		    case 6 :
+			    printToWeb += process05And06functions();
+		    break;
+		}
+	} 
+    
+    return printToWeb + "]";
 }
 
 String processingModbusRequest() {
 	processingPostReqestData();
 	byte bytesToPort[6] = {
-		id, 
-		command, 
+		lowByte(id), 
+		lowByte(command), 
 		highByte(reg), lowByte(reg), 
 		highByte(val), lowByte(val)
 	};
@@ -143,9 +164,9 @@ void serverInit() {
 
 int modbusGetRxBuffer() {
 	digitalWrite(LED_RX_PIN, HIGH);
-	for (int i = 0; i < 8; i++) {
-		rxBuffer[i] = 0;
-	}
+	//for (int i = 0; i < 8; i++) {
+	//	rxBuffer[i] = 0;
+	//}
 	boolean bufferOverflow = false;
 	digitalWrite(RS485_PIN, LOW);
 	int readBytesCount = 0;
@@ -156,11 +177,11 @@ int modbusGetRxBuffer() {
 			bufferOverflow = true;
 		}
 	}
-	//digitalWrite(RS485_PIN, HIGH);
 	if (bufferOverflow) {
 		return -3;
 	}
 	digitalWrite(LED_RX_PIN, LOW);
+	
 	return readBytesCount;
 }
 
@@ -175,9 +196,9 @@ void modbusSendTxBuffer(byte buff[], int len) {
     buff[len] = highByte(crc);
     buff[len + 1] = lowByte(crc);
     digitalWrite(RS485_PIN, HIGH);
-    delay(5);
+    delay(WAIT_SERIAL_DELAY / 2);
     Serial.write(buff, len);
-    delay(10);
+    delay(WAIT_SERIAL_DELAY);
     digitalWrite(RS485_PIN, LOW);
     Serial.flush();
     digitalWrite(LED_TX_PIN, LOW);
@@ -191,7 +212,7 @@ unsigned int modbusCalcCRC(byte length, byte bufferArray[]) {
         for (unsigned char j = 1; j <= 8; j++) {
             flag = temp & 0x0001;
             temp >>= 1;
-            if (flag)   temp ^= 0xA001;
+            if (flag) temp ^= 0xA001;
         }
     }
     temp2 = temp >> 8;

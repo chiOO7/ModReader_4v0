@@ -15,6 +15,8 @@ const int WAIT_COUNT_DELAY = 10;
 const char ESPControllerWifiAP_SSID[40] = "Modreader 4v0";
 const char ESPControllerWifiAP_password[40] = "12345678";
 const String BAD_RX = "\"ERROR!\", \"BAD_RX\"";
+const String SERIAL_TIMEOUT = "\"ERROR!\", \"SERIAL_TIMEOUT\"";
+const String BUFFER_OVERFLOW = "\"ERROR!\", \"BUFFER_OVERFLOW\"";
 const String SET_OK = "\"SET_OK\"";
 
 int id;
