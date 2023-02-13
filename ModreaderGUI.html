@@ -6,31 +6,38 @@
 		<title>Modreader 4v0</title>
 		<style>
 			body {
-				font-size: 40px;
+				font-size: 20px;
 				background-color: #C8C9CB;
 				font-family: arial, sans-serif;
 				font-weight: bold;
 			}
+			
 	        div {
 				color: #FFFFFF;
-				border-radius: 10px;
+				border-radius: 5px;
 			}
+			
 			.logform {
-				padding: 10px;
+				padding: 5px;
 			}
+			
 			.butt {
-				padding: 10px;
-				height: 200px;
+				padding: 5px;
+				height: 50px;
+				width: 100%;
 			}
+			
 			.flex-container-head-foot {
 				display: flex;	
 			}
+			
 			.head-foot {
 				flex-grow: 1;
-				margin: 10px;
+				margin: 3px;
 				background-color: #003366;
 				text-align: center;
 			}
+			
 			.flex-container-body {
 				display: flex;
 				flex-direction: row;
@@ -39,37 +46,43 @@
 			
 			.sub {
 				flex-grow: 1;
-				margin: 10px;
+				margin: 3px;
 				background-color: #0071B9;
 				width: 500px;
-				padding: 20px;
+				padding: 5px;
 				
 			}
+			
 	        select {
-				font-size: 40px;
-				border-radius: 10px;
-				height: 100px;
+				font-size: 20px;
+				border-radius: 5px;
+				height: 40px;
 				width: 100%
 			}
+			
 			input {
-				font-size: 40px;
-				border-radius: 10px;
-				height: 100px;
-                width: 100%
+				font-size: 20px;
+				border-radius: 5px;
+				height: 40px;
+                width: 98%
 			}
+			
 			textarea {
-				border-radius: 10px;
+				border-radius: 5px;
 				font-size: 12px;
-				width: 100%;
-				height: 370px;
+				width: 98%;
+				height: 270px;
 			}
 			
 			td {
-				padding: 10px;
+				padding: 5px;
 			}
         </style>
 		<script>
-			//let reqStr = "";
+			function addComment() {
+				const commentField = document.getElementById('comment');
+				printToLog(commentField.value);
+			}
 		
 			function sendToEmail() {
 				const dateTime = new Date();
@@ -247,13 +260,13 @@
 	<body>
 		<div class="flex-container-head-foot">
 		    <div class="head-foot">
-				<h2><strong>ModReader v4</strong></h2>
+				<h3><strong>ModReader v4</strong></h3>
 		    </div>
 	    </div>
 		<div class="flex-container-body">
 			<div class="sub">
 				<form action="http://192.168.0.1" method="post" enctype="application/x-www-form-urlencoded" id="form" onsubmit="return false;">
-					<table border="0">
+					<table border="0" style="width: 100%;">
 						<tr>
 							<td>
 								<label for="id">Id:</label>
@@ -291,7 +304,9 @@
 						</tr>
 					</table>
 				</form>
-				<div class="logform"><textarea id="area" cols=37 rows=28 placeholder="Журнал"></textarea></div>
+				<div class="logform"><input id="comment" type="text" placeholder="Комментарий"></div>
+				<div class="logform"><input class="butt" id="commentBtn" type="button" value="Добавить комментарий" onclick="addComment()"></div>
+				<div class="logform"><textarea id="area" cols=37 rows=2 placeholder="Журнал"></textarea></div>
 			</div>
 			<div class="sub" >
 				<form id="log_form" onsubmit="sendToEmail()">
@@ -301,7 +316,7 @@
 					<div class="logform"><input type="text" id="job_name" class="email" placeholder="Должность"></div>
 					<div class="logform"><input type="text" id="employee_name" class="email" placeholder="Ф.И.О."></div>
 					<div class="logform"><input type="email" id="email" class="email" placeholder="Ввести email"></div>
-					<div class="butt"><input type="submit" value="Отправить на email"></div>
+					<div class="logform"><input type="submit" class="butt" value="Отправить на email"></div>
 				</form>
 			</div>
 		</div>
