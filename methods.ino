@@ -103,11 +103,11 @@ String processingModbusResponse() {
 		switch (rxBuffer[1]) {
 		    case 1 :
 				  //printToWeb += "1, 123";
-			    printToWeb = process01And02functions(bytesCount);
+			    printToWeb += process01And02functions(bytesCount);
 		    break;
 		    case 2 :
 				  //printToWeb += "2, 234";
-          printToWeb = process01And02functions(bytesCount);
+          printToWeb += process01And02functions(bytesCount);
 		    break;
 		    case 3 :
 			    printToWeb += process03And04functions(bytesCount);
@@ -116,7 +116,7 @@ String processingModbusResponse() {
 			    printToWeb += process03And04functions(bytesCount);
 		    break;
 		    case 5 :
-			    printToWeb = process05And06functions();
+			    printToWeb += process05And06functions();
 		    break;
 		    case 6 :
 			    printToWeb += process05And06functions();
